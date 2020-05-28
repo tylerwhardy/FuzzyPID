@@ -1,0 +1,78 @@
+** Demonstration of plant stability without transient history ** 
+
+CLIPS> (run)
+FIRE    1 getSetpoint: *
+Set system temperature: 72
+==> f-1     (Setpoint medium)
+==> f-2     (preerror low)
+==> Activation 50     pError1: f-2
+FIRE    2 pError1: f-2
+==> f-3     (Perror low)
+<== Focus MAIN
+2 rules fired        Run time is 3.14599999999996 seconds.
+0.63572790845519 rules per second.
+3 mean number of facts (4 maximum).
+1 mean number of instances (1 maximum).
+1 mean number of activations (1 maximum).
+
+CLIPS> (run)
+FIRE    1 getSetpoint: *
+Set system temperature: 72
+==> f-1     (Setpoint medium)
+==> f-2     (preerror low)
+==> Activation 50     pError1: f-2
+FIRE    2 pError1: f-2
+==> f-3     (Perror low)
+<== Focus MAIN
+2 rules fired        Run time is 3.14599999999996 seconds.
+0.63572790845519 rules per second.
+3 mean number of facts (4 maximum).
+1 mean number of instances (1 maximum).
+1 mean number of activations (1 maximum).
+
+CLIPS> (defrule sum5
+	(declare (salience -500))
+	(Perror low)(Nerror none)
+	?f <- (Perror low)
+	?g <- (Nerror none)
+	=>
+	(retract ?f)
+	(retract ?g)
+	(assert (error none))
+)
+CLIPS> (assert (Perror low)(Nerror none))
+==> f-1     (Perror low)
+==> f-2     (Nerror none)
+==> Activation -500   sum5: f-1,f-2,f-1,f-2
+<Fact-2>
+
+**** Demonstration of plant cooldown stage ****
+
+CLIPS> 
+(defglobal ?*plantOutput* = 70)
+CLIPS> (assert (error low))
+==> f-1     (error low)
+<Fact-1>
+CLIPS> (defrule plantCooldown
+	(declare (salience 1))
+	(error low)
+	?f <- (error low)
+	=>
+;;	(retract ?f)
+	(assert (preerror low))
+	(bind ?*plantOutput* (- ?*plantOutput* 1))
+	(printout t "Lowering plant output" crlf)
+)
+==> Activation 1      plantCooldown: f-1,f-1
+CLIPS> (run)
+FIRE    1 plantCooldown: f-1,f-1
+==> f-2     (preerror low)
+:== ?*plantOutput* ==> 69 <== 70
+Lowering plant output
+<== Focus MAIN
+1 rules fired        Run time is 0.0139999999999816 seconds.
+71.4285714286654 rules per second.
+3 mean number of facts (3 maximum).
+1 mean number of instances (1 maximum).
+1 mean number of activations (1 maximum).
+)
